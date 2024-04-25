@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieSession = require("cookie-session");
 
+const connectDB = require("./src/db");
+
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -26,5 +28,7 @@ app.get("/", function (req, res) {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+    connectDB().then(() => {
+        console.log(`Server listening on ${PORT}`);
+    })
 });
