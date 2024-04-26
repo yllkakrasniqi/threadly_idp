@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const User = require('../models/User')
+const User = require("../models/User");
 const authConfig = require("../config/auth");
 
-exports.signup = async (req, res) => {
+const signup = async (req, res) => {
   // Get data from body of request
   const { firstname, lastname, email, password, country } = req.body;
 
@@ -25,7 +25,7 @@ exports.signup = async (req, res) => {
   }
 
   // Encript password
-  const hashPassword = bcrypt.hashSync(req.body.password, 8)
+  const hashPassword = bcrypt.hashSync(req.body.password, 8);
 
   // Check if a user already exist with the same E-mail
   const records = await User.find({ email: email });
@@ -33,7 +33,7 @@ exports.signup = async (req, res) => {
     return res
       .status(400)
       .send({ message: "A user with this email already exist" });
-  } 
+  }
 
   // Create the new user
   const newUser = new User({
@@ -48,15 +48,57 @@ exports.signup = async (req, res) => {
    * Create two tokens for the user, token for authentication
    * and one for refresh token
    */
-  const authToken = jwt.sign(
+  const authToken = jwt.sign({ id: newUser._id.valueOf() }, authConfig.secret, {
+    expiresIn: "30m",
+  });
+  const refreshToken = jwt.sign(
     { id: newUser._id.valueOf() },
     authConfig.secret,
     {
-      expiresIn: "30m",
+      expiresIn: "1h",
     }
   );
+
+  res.status(200).send({
+    authToken,
+    refreshToken,
+  });
+};
+
+const login = async (req, res) => {
+  // Get email and password from body
+  const { email, password } = req.body;
+
+  // Check if email or password is missing
+  if (!email || email?.trim() === "" || !password || password?.trim() === "") {
+    return res.status(400).send({ message: "Email or passwrod is missing" });
+  }
+
+  // Check if user does not exist
+  const account = await User.findOne({email: email})
+  if(!account){
+    return res.status(404).send({ message: "User not found" });
+    // return res.status(401).send({ message: "Invalid username or password" });
+  }
+
+  // Check if password is valid
+  var passwordIsValid = bcrypt.compareSync(
+    password,
+    account.password
+  )   
+  if( !passwordIsValid ){
+    return res.status(401).send({message:"Invalid Password!"})
+  }
+
+  /**
+   * Create two tokens for the user, token for authentication
+   * and one for refresh token
+   */
+  const authToken = jwt.sign({ id: account._id.valueOf() }, authConfig.secret, {
+    expiresIn: "30m",
+  });
   const refreshToken = jwt.sign(
-    { id: newUser._id.valueOf() },
+    { id: account._id.valueOf() },
     authConfig.secret,
     {
       expiresIn: "1h",
@@ -67,5 +109,16 @@ exports.signup = async (req, res) => {
     authToken, 
     refreshToken
   });
-
 };
+
+
+const logout = async (req, res) => {
+    // req.session = null
+    return res.status(200).send({message:"You've been signed out!"})
+}
+
+module.exports = {
+    signup,
+    login,
+    logout
+}
