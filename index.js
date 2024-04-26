@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieSession = require("cookie-session");
 
 const connectDB = require("./src/db");
+const userRoutes = require('./src/user/user.routes')
 
 const PORT = process.env.PORT || 3001;
 
@@ -26,6 +27,8 @@ app.use(
 app.get("/", function (req, res) {
   res.send("Hello World!");
 });
+
+app.use('/', userRoutes)
 
 app.listen(PORT, () => {
     connectDB().then(() => {
