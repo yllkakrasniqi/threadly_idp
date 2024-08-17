@@ -4,7 +4,44 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const authConfig = require("../config/auth");
 
-const signup = async (req, res) => {
+const getProfile = async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; 
+  
+  if (!token) {
+    return res.status(401).send({ message: "No token provided!" });
+  }
+
+  jwt.verify(token, authConfig.secret, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Unauthorized!" });
+    }
+    req.id = decoded.id;
+  });
+
+  if(!req.id){
+    return
+  }
+
+  const authToken = jwt.sign(
+    { id: req.id.valueOf() },
+    authConfig.secret,
+    {
+      expiresIn: "1m",
+    }
+  );
+  const refreshToken = jwt.sign(
+    { id: req.id.valueOf() },
+    authConfig.secret,
+    {
+      expiresIn: "2m",
+    }
+  );
+
+  res.status(200).send({ authToken, refreshToken, message: "Success" });
+}
+
+const   signup = async (req, res) => {
   // Get data from body of request
   const { firstname, lastname, email, password, country } = req.body;
 
@@ -41,6 +78,7 @@ const signup = async (req, res) => {
     lastname,
     email,
     password: hashPassword,
+    country
   });
   await newUser.save();
 
@@ -118,6 +156,7 @@ const logout = async (req, res) => {
 }
 
 module.exports = {
+    getProfile,
     signup,
     login,
     logout

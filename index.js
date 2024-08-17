@@ -28,6 +28,8 @@ app.get("/", function (req, res) {
   res.send("Hello World!");
 });
 
+
+//api/user/ - this better as a route
 app.use('/', userRoutes)
 
 app.listen(PORT, () => {
