@@ -2,15 +2,17 @@ const express = require("express");
 const cors = require("cors");
 const cookieSession = require("cookie-session");
 
-const connectDB = require("./src/db");
-const userRoutes = require('./src/user/user.routes')
+const config = require('./config');
+const connectDB = require("./db");
+const userRoutes = require('./user/user.routes')
 
-const PORT = process.env.PORT || 3001;
+const PORT = config.app.port;
 
 const app = express();
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Replace with your client's origin
+    origin: config.app.cors_origin, 
     credentials: true,
   })
 );
@@ -30,7 +32,7 @@ app.get("/", function (req, res) {
 
 
 //api/user/ - this better as a route
-app.use('/', userRoutes)
+app.use('/user', userRoutes)
 
 app.listen(PORT, () => {
     connectDB().then(() => {

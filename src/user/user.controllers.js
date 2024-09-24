@@ -1,18 +1,20 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+const config = require('../config');
 const User = require("../models/User");
-const authConfig = require("../config/auth");
+
+const jwt_secret_key = config.jwt.secret_key
 
 const getProfile = async (req, res) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; 
-  
+
   if (!token) {
     return res.status(401).send({ message: "No token provided!" });
   }
 
-  jwt.verify(token, authConfig.secret, (err, decoded) => {
+  jwt.verify(token, jwt_secret_key, (err, decoded) => {
     if (err) {
       return res.status(403).send({ message: "Unauthorized!" });
     }
@@ -25,16 +27,16 @@ const getProfile = async (req, res) => {
 
   const authToken = jwt.sign(
     { id: req.id.valueOf() },
-    authConfig.secret,
+    jwt_secret_key,
     {
-      expiresIn: "1m",
+      expiresIn: "30m",
     }
   );
   const refreshToken = jwt.sign(
     { id: req.id.valueOf() },
-    authConfig.secret,
+    jwt_secret_key,
     {
-      expiresIn: "2m",
+      expiresIn: "1h",
     }
   );
 
@@ -86,12 +88,12 @@ const   signup = async (req, res) => {
    * Create two tokens for the user, token for authentication
    * and one for refresh token
    */
-  const authToken = jwt.sign({ id: newUser._id.valueOf() }, authConfig.secret, {
+  const authToken = jwt.sign({ id: newUser._id.valueOf() }, jwt_secret_key, {
     expiresIn: "30m",
   });
   const refreshToken = jwt.sign(
     { id: newUser._id.valueOf() },
-    authConfig.secret,
+    jwt_secret_key,
     {
       expiresIn: "1h",
     }
@@ -132,12 +134,12 @@ const login = async (req, res) => {
    * Create two tokens for the user, token for authentication
    * and one for refresh token
    */
-  const authToken = jwt.sign({ id: account._id.valueOf() }, authConfig.secret, {
+  const authToken = jwt.sign({ id: account._id.valueOf() }, jwt_secret_key, {
     expiresIn: "30m",
   });
   const refreshToken = jwt.sign(
     { id: account._id.valueOf() },
-    authConfig.secret,
+    jwt_secret_key,
     {
       expiresIn: "1h",
     }
