@@ -29,7 +29,7 @@ Follow these steps to install and run the project locally:
 
 2. Navigate to the project directory:
     ```bash
-    cd auth-microservices-api
+    cd threadly_idp
     ```
 
 3. Install the required dependencies:
