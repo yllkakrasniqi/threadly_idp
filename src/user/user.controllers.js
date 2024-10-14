@@ -157,9 +157,27 @@ const logout = async (req, res) => {
     return res.status(200).send({message:"You've been signed out!"})
 }
 
+const verifyToken = async (req, res) => {
+  const { authorization } = req.headers
+
+  if(!authorization) {
+    return res.status(401).send({message: "Unauthorized. Token is required."})
+  }
+
+  const token = authorization.replace("Bearer", "").trim()
+  jwt.verify(token, jwt_secret_key, (err, decoded) => {
+    if(err){
+      console.log(err)
+        return res.status(403).send({message: "Forbidden. Invalid token."})
+    }
+    return res.status(200).send({message: "Success"})
+})
+}
+
 module.exports = {
     getProfile,
     signup,
     login,
-    logout
+    logout,
+    verifyToken
 }
